@@ -8,17 +8,19 @@ public class PlayerMove : MonoBehaviour
 	[SerializeField] private float _moveSpeed;
 	[SerializeField] private float _jumpSpeed;
 	[SerializeField] private float _friction;
-	[SerializeField] private bool _grounded;
+	public bool Grounded;
 
 	[SerializeField] private float _maxSpeed;
 
 	[SerializeField] private Transform _colliderTransform;
 
+	private int _jumpFrameCounter;
+
 	private float _lerpTime = 15f;
 
 	void Update ()
 	{
-		if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey (KeyCode.S) || _grounded == false)
+		if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey (KeyCode.S) || Grounded == false)
 		{
 			_colliderTransform.localScale = Vector3.Lerp(_colliderTransform.localScale, new Vector3(1f, 0.5f, 1f), Time.deltaTime * _lerpTime);
 		}
@@ -29,18 +31,24 @@ public class PlayerMove : MonoBehaviour
 
 		if (Input.GetKeyDown (KeyCode.Space))
 		{
-			if (_grounded)
+			if (Grounded)
 			{
-				_rigidbody.AddForce (0, _jumpSpeed, 0, ForceMode.VelocityChange);
+				Jump();
 			}
 		}
+	}
+
+	public void Jump ()
+	{
+		_rigidbody.AddForce (0, _jumpSpeed, 0, ForceMode.VelocityChange);
+		_jumpFrameCounter = 0;		
 	}
 
 	private void FixedUpdate ()
 	{
 		float speedMultiplier = 1f;
 
-		if (_grounded == false)
+		if (Grounded == false)
 		{
 			speedMultiplier = 0.2f;
 
@@ -56,10 +64,19 @@ public class PlayerMove : MonoBehaviour
 
 		_rigidbody.AddForce (Input.GetAxis ("Horizontal") * _moveSpeed * speedMultiplier, 0, 0, ForceMode.VelocityChange);
 
-		if (_grounded)
+		if (Grounded)
 		{
 			//сила по Х вместо drag сопротивления воздуха
 			_rigidbody.AddForce (-_rigidbody.velocity.x * _friction, 0, 0, ForceMode.VelocityChange);
+
+			transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.identity, Time.deltaTime * 15f);
+		}
+
+		_jumpFrameCounter += 1;
+		if (_jumpFrameCounter == 2)
+		{
+			_rigidbody.freezeRotation = false;
+			_rigidbody.AddRelativeTorque (0f, 0f, 10f, ForceMode.VelocityChange);
 		}
 	}
 
@@ -70,13 +87,14 @@ public class PlayerMove : MonoBehaviour
 		float angle = Vector3.Angle (collision.contacts[0 /*i*/].normal, Vector3.up);
 		if (angle < 45f)
 		{
-			_grounded = true;
+			Grounded = true;
+			_rigidbody.freezeRotation = true;
 		}
 		//}		
 	}
 
 	private void OnCollisionExit (Collision collision)
 	{
-		_grounded = false;
+		Grounded = false;
 	}
 }

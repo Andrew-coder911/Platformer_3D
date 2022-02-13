@@ -11,12 +11,7 @@ public class RotateToAim : MonoBehaviour
 
     [SerializeField] private Transform _aimTransform;
     private Vector3 _targetEuler;
-
-    void Start ()
-    {
-        //_aimTransform = FindObjectOfType<PlayerMove> ().transform;
-    }
-
+   
 
     void Update ()
     {
@@ -29,6 +24,6 @@ public class RotateToAim : MonoBehaviour
             _targetEuler = _leftEuler;
         }
 
-        transform.rotation = Quaternion.Lerp (transform.rotation, Quaternion.Euler (_targetEuler), Time.deltaTime * _rotationSpeed);
+        transform.localRotation = Quaternion.Lerp (transform.localRotation, Quaternion.Euler (_targetEuler), Time.deltaTime * _rotationSpeed);
     }
 }
